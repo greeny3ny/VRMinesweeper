@@ -1,0 +1,88 @@
+<script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r84/build/three.min.js"></script>
+<script src="../../dist/altspace.js"></script>
+
+<a-scene>
+
+  <a-box position="-1 0.5 -3 " width="1 " height="1 " depth="1 " color="#4CC3D9"></a-box>
+
+  <a-sky color="#ECECEC"></a-sky>
+  
+</a-scene>
+
+<script>
+var scene = document.querySelector('a-scene');
+var box = document.createElement('a-box');
+
+var y;
+var z;
+var rand;
+
+//rand = Math.floor((Math.random()*81)+1);
+rand = 0;
+
+var counter = 0;
+
+for(y = 0; y<=8; y++){
+	for(z=0; z<=8; z++){
+
+		var box = document.createElement('a-box');
+		box.setAttribute('width', '1');
+		box.setAttribute('height', '1');
+		box.setAttribute('depth','1');
+	
+		if(rand ==(z+(y*9))){
+			box.setAttribute('color','#FF0000');
+		}else{
+			box.setAttribute('color','#ECACEC');
+		}
+		
+		box.setAttribute('position', '3 '+ y +' ' + z);
+		scene.appendChild(box);
+		}
+	}
+}
+
+	var utilities = altspace.utilities;
+	var behaviors = altspace.utilities.behaviors;
+
+	var sim;
+	var instanceRef;
+	var inCodePen = altspace.utilities.codePen.inCodePen;
+	
+	altspace.utilities.sync.connect({
+			appId: 'Chess',
+			authorId: inCodePen ? altspace.utilities.codePen.getAuthorId() : 'AltspaceVR',
+			instanceId: inCodePen ? altspace.utilities.codePen.getPenId() : null
+		}).then(function(connection) {
+			sim = new altspace.utilities.Simulation();
+			instanceRef = connection.instance;
+
+	var tiles = [];
+	var boardSize = 700;
+	
+	function createInstantiationSphere(initData) {
+				var sphere = createSphere(initData);
+				sphere.material.color = new THREE.Color("#00EE00");
+				sphere.position.x = 100;
+
+				sphere.addEventListener('cursordown', function () {
+					//clicking on sphere creates block of random size nearby
+					var initData = {
+						width: 1,
+						height: 1,
+						depth: 1,
+						x: 1,
+						y: 1,
+						z: 1,
+						color: #ff0000
+					};
+					sceneSync.instantiate('Cube', initData, true);
+				});
+
+				return sphere;
+			}
+	});
+
+
+</script>
