@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html><body>
+<script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
+<script src="https://cdn.rawgit.com/AltspaceVR/AltspaceSDK/v2.0.2/dist/altspace.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r84/build/three.min.js"></script>
+<script src="../../dist/altspace.js"></script>
+
+<!-- set up the scene -->
+<a-scene altspace='vertical-align: bottom;'>
+ 
+    <!-- add a view camera (2d only) -->
+
+    <a-entity position='0 0 2'>
+        <a-camera></a-camera>
+    </a-entity>
+ 
+</a-scene>
+ 
+</body>
+
+<script>
+
+var scene;
+var sim;
+
+var Y_WIDTH;
+var Z_WIDTH; 
+var MINE_NO;
+var GAME_OVER;
+var rand;
+var mines;
+var tiles;
+var objects;
+var objects2;
+var flagging;
+//var revealed;
+
+var img1 = new Image();
+img1.src = 'm1.png'
+var tex = new THREE.Texture(img1);
+img1.tex = tex;
+
+//box2render();
+
+reset();
+edgeRender();
+
+//uses for testing
+function box2render(){
+	var box2 = document.createElement('a-box');
+
+	box2.setAttribute('width', '1');	
+	box2.setAttribute('height', '1');
+	box2.setAttribute('depth','1');
+	box2.setAttribute('color','#FF0000');
+	box2.setAttribute('position', '0 1 0');
+
+	scene.appendChild(box2);  //the box of testing
+}
+
+function edgeRender(){
+
+	var edge1 = document.createElement('a-box');
+
+	edge1.setAttribute('width', '0.1');	
+	edge1.setAttribute('height', '0.3');
+	edge1.setAttribute('depth', 0.2*Y_WIDTH);
+	edge1.setAttribute('color','#000000');
+	edge1.setAttribute('position', '-2.15 0 -0.5');
+
+	var edge2 = document.createElement('a-box');
+
+	edge2.setAttribute('width', '0.1');	
+	edge2.setAttribute('height', '0.3');
+	edge2.setAttribute('depth', 0.2*Y_WIDTH);
+	edge2.setAttribute('color','#000000');
+	edge2.setAttribute('position', '1.15 0 -0.5');
+
+	var edge3 = document.createElement('a-box');
+
+	edge3.setAttribute('width', 0.2*Z_WIDTH);	
+	edge3.setAttribute('height', '0.3');
+	edge3.setAttribute('depth', '0.1');
+	edge3.setAttribute('color','#000000');
+	edge3.setAttribute('position', '-0.5 0 -2.15');
+
+	var edge4 = document.createElement('a-box');
+
+	edge4.setAttribute('width', 0.2*Z_WIDTH);	
+	edge4.setAttribute('height', '0.3');
+	edge4.setAttribute('depth', '0.1');
+	edge4.setAttribute('color','#000000');
+	edge4.setAttribute('position', '-0.5 0 1.15');
+
+
+	scene.appendChild(edge1);
+	scene.appendChild(edge2);
+	scene.appendChild(edge3);
+	scene.appendChild(edge4);
+}
+
+//renders screen
+function cubeRender(y,z){
+
+	var flagged = false;
+	var box3 = new THREE.Mesh(
+
+		new THREE.BoxGeometry(0.2,0.2,0.2),
+		new THREE.MeshBasicMaterial({color:0xffffff})
+
+		);
+
+	box3.position.set((y-10)*0.2, 0.01, (z-10)*0.2);
+
+	box3.addEventListener('cursordown', function(){
+		
+		if (flagging == true){
+			if (flagged == false){
+				box3.material.color.setHex(0xffcc00);
+				flagged = true;
+			} else {
+				box3.material.color.setHex(0xffffff);
+				flagged = false;
+			}
+		}else{
+		sim.scene.remove(box3);
+		//revealed[y*Y_WIDTH + z] = true;
+		checkTile(y,z);
+		}
+	});
+
+
+	objects.push(box3);
+	sim.scene.add(box3);
+
+}//end box3render
+
+function mineCheck(y,z){
+		// minecheck2
+		// loop through all 8 tiles around
+		//checks if current tile is NOT a mine
+		if (tiles[y*Y_WIDTH + z] != 90) {
+
+			var	counter = 0;
+
+			if (tiles[(y+1)*Y_WIDTH + z] == 90){counter++}
+			if (tiles[(y-1)*Y_WIDTH + z] == 90){counter++}
+
+			if((y*Y_WIDTH +z) %Y_WIDTH != 0){
+				if (tiles[(y+1)*Y_WIDTH + (z-1)] == 90){counter++}
+				if (tiles[(y)*Y_WIDTH + (z-1)] == 90){counter++}
+				if (tiles[(y-1)*Y_WIDTH + (z-1)] == 90){counter++}
+			}
+			if ((y*Y_WIDTH + z) %Y_WIDTH != Y_WIDTH-1 ){
+				if (tiles[(y-1)*Y_WIDTH + (z+1)] == 90){counter++}
+				if (tiles[(y+1)*Y_WIDTH + (z+1)] == 90){counter++}
+				if (tiles[(y)*Y_WIDTH + (z+1)] == 90){counter++}
+			}
+			tiles[y*Y_WIDTH + z] = counter;
+
+		}//end mine check
+}//endminecheck function
+
+//checks tile clicked on
+function checkTile(y,z){
+
+	if(tiles[y*Y_WIDTH + z] == 90){
+
+		GAME_OVER = true;
+		for (var i=0; i<objects.length; i++){
+			sim.scene.remove(objects[i]);
+		}
+		//box2render();
+
+	}
+
+	if(tiles[y*Y_WIDTH + z] == 0){
+
+		revealTiles(y, z);
+
+	}
+}
+
+function revealTiles(y, z){
+
+	//y+1 z
+	//y+1 z+1
+	//y+1 z-1
+
+	//y-1 z
+	//y-1 z+1
+	//y-1 z-1
+
+	//y z+1
+	//y z-1
+
+	sim.scene.remove(objects[(y+1)*Y_WIDTH + z]);
+	sim.scene.remove(objects[(y+1)*Y_WIDTH + (z+1)]);
+	sim.scene.remove(objects[(y+1)*Y_WIDTH + (z-1)]);
+	sim.scene.remove(objects[(y-1)*Y_WIDTH + z]);
+	sim.scene.remove(objects[(y-1)*Y_WIDTH + (z+1)]);
+	sim.scene.remove(objects[(y-1)*Y_WIDTH + (z-1)]);
+	sim.scene.remove(objects[(y)*Y_WIDTH + (z+1)]);
+	sim.scene.remove(objects[(y)*Y_WIDTH + (z-1)]);
+
+	//if (tiles[(y+1)*Y_WIDTH + z] == 0){revealTiles(y+1, z)}	
+	//if (tiles[(y-1)*Y_WIDTH + z] == 0){revealTiles(y-1, z)}
+	//if (tiles[(y-1)*Y_WIDTH + (z+1)] == 0){revealTiles(y-1, z+1)}
+	//if (tiles[(y-1)*Y_WIDTH + (z-1)] == 0){revealTiles(y-1, z-1)}
+	//if (tiles[(y)*Y_WIDTH + (z+1)] == 0){revealTiles(y, z+1)}
+	//if (tiles[(y+1)*Y_WIDTH + (z+1)] == 0){revealTiles(y+1, z+1)}
+	//if (tiles[(y+1)*Y_WIDTH + (z-1)] == 0){revealTiles(y+1, z-1)}
+	//if (tiles[(y)*Y_WIDTH + (z-1)] == 0){revealTiles(y, z-1)}
+}
+
+function setColors(box, y, z){
+
+	switch(tiles[y*Y_WIDTH + z]){
+			case 0:
+			box.setAttribute('color', '#ECACEC');
+			break;
+			case 1:
+			box.setAttribute('color', '#00ffcc'); //cyan
+			//box.setAttribute('material', m1.png);
+			break;
+			case 2:
+			box.setAttribute('color', '#6600ff'); //purple
+			break;
+			case 3:
+			box.setAttribute('color', '#00ff00'); //lime green
+			break;
+			case 4:
+			box.setAttribute('color', '#009900'); //dark green
+			break;
+			case 5:
+			box.setAttribute('color', '#fff000'); //yellow
+			break;
+			case 6:
+			box.setAttribute('color', '#000dff'); //dark blue
+			break;
+			case 7:
+			box.setAttribute('color', '#8c00ff'); //purple
+			break;
+			case 8:
+			box.setAttribute('color', '#000000'); //black
+			break;
+
+			case 90:
+			box.setAttribute('color', '#ff0000'); //red
+
+		}
+}//end setColors
+
+//sets mines
+function setMines(){
+
+	//set mine positions
+	for(var i=0; i<MINE_NO; i++){
+
+		rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+		mines.push(rand);
+
+	}
+
+	for(var y = 0; y<Y_WIDTH; y++){
+	for(var z=0; z<Z_WIDTH; z++){
+		//loop through mines array
+		for(var mn=0; mn < mines.length; mn++){
+			//temporary variable to hold mine that is being checked
+			var t1 = mines[mn];
+			//set mines
+			if(y*Y_WIDTH + z == t1){	tiles[t1] = 90 }
+		}//end for mn
+	}//end for z
+	}//end for y	
+}
+
+//drawsgrid
+function drawGrid(){
+	for(var y = 0; y<Y_WIDTH; y++){
+	for(var z=0; z<Z_WIDTH; z++){
+
+	//revealed[y*Y_WIDTH + z] = false;
+
+	cubeRender(y,z);
+	//create box
+	var box = document.createElement('a-box');
+	box.setAttribute('width', '0.2');
+	box.setAttribute('height', '0.2');
+	box.setAttribute('depth','0.2');
+
+	mineCheck(y,z);
+	setColors(box, y, z);
+
+	//set box position
+	box.setAttribute('position', (y-10)*0.2 + ' 0 ' + (z-10)*0.2);
+		
+	//add box to scene
+	scene.appendChild(box);
+	objects2.push(box);
+	}//end for z
+	}//end for x
+}
+
+//resets app
+function reset(){
+
+	initialiseVars();
+	setMines();
+	drawGrid();
+}
+
+function wipeObjects(){
+	for (var i=0; i<objects2.length; i++){
+		scene.remove(objects2[i]);
+	}
+	for (var i=0; i<objects.length; i++){
+		sim.scene.remove(objects[i]);
+	}
+}
+
+
+
+function initialiseVars(){
+
+	scene = document.querySelector('a-scene');
+	sim = new altspace.utilities.Simulation();
+
+	Y_WIDTH = 16;
+	Z_WIDTH = 16; 
+	MINE_NO = 1; //40
+	GAME_OVER = false;
+	mines = [];
+	tiles = [];
+	objects = [];
+	objects2 = [];
+	flagging = false;
+	//revealed = [];
+}
+
+var reset_box = new THREE.Mesh(
+
+		new THREE.BoxGeometry(0.5,0.5,0.5),
+		new THREE.MeshBasicMaterial({color:0xffffff})
+
+		);
+
+	reset_box.position.set(2, 0, 2);
+
+	reset_box.addEventListener('cursordown', function(){
+		
+		wipeObjects();
+		reset();
+		//box2render();
+
+	});
+
+	sim.scene.add(reset_box);
+
+var flag_box = new THREE.Mesh(
+
+		new THREE.BoxGeometry(0.5,0.5,0.5),
+		new THREE.MeshBasicMaterial({color:0xffcc00d})
+
+		);
+
+	flag_box.position.set(1, 0, 2);
+
+	flag_box.addEventListener('cursordown', function(){
+		
+		if (flagging == false){
+			flagging = true;
+		} else {
+			flagging = false;
+		}
+
+	});
+
+	sim.scene.add(flag_box);
+
+
+
+</script>
+</html>
