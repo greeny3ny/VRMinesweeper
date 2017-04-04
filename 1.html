@@ -9,6 +9,7 @@
 <a-scene altspace='vertical-align: bottom;'>
  
     <!-- add a view camera (2d only) -->
+    <a-text value="Hello, World!"></a-text>
 
     <a-entity position='0 0 2'>
         <a-camera></a-camera>
@@ -33,7 +34,8 @@ var tiles;
 var objects;
 var objects2;
 var flagging;
-//var revealed;
+var revealed;
+var obj_other;
 
 var img1 = new Image();
 img1.src = 'm1.png'
@@ -44,7 +46,7 @@ img1.tex = tex;
 
 reset();
 edgeRender();
-
+//box2render();
 //uses for testing
 function box2render(){
 	var box2 = document.createElement('a-box');
@@ -52,10 +54,11 @@ function box2render(){
 	box2.setAttribute('width', '1');	
 	box2.setAttribute('height', '1');
 	box2.setAttribute('depth','1');
-	box2.setAttribute('color','#FF0000');
+	box2.setAttribute('color','#00FF00');
 	box2.setAttribute('position', '0 1 0');
 
 	scene.appendChild(box2);  //the box of testing
+	obj_other.push(box2);
 }
 
 function edgeRender(){
@@ -123,7 +126,7 @@ function cubeRender(y,z){
 				flagged = false;
 			}
 		}else{
-		sim.scene.remove(box3);
+		//sim.scene.remove(box3);
 		//revealed[y*Y_WIDTH + z] = true;
 		checkTile(y,z);
 		}
@@ -164,6 +167,8 @@ function mineCheck(y,z){
 //checks tile clicked on
 function checkTile(y,z){
 
+	revealed[y*Y_WIDTH + z] = true;
+
 	if(tiles[y*Y_WIDTH + z] == 90){
 
 		GAME_OVER = true;
@@ -172,46 +177,74 @@ function checkTile(y,z){
 		}
 		//box2render();
 
+	}//end tiles=90
+
+	if(tiles[y*Y_WIDTH + z] == 0){
+		
+		//makes sure all variations of the thing can be thinged
+		for (var loop=0; loop<Y_WIDTH; loop++){
+		revealTiles();
+	}
+		//box2render();
+	}//tiles = 0 end
+
+	//box2render();
+	removeTiles();
+}
+
+function removeTiles(){
+
+	for (var ii = 0; ii<Y_WIDTH; ii++){
+		for (var jj = 0; jj<Y_WIDTH; jj++){
+
+			if (revealed[ii*Y_WIDTH + jj] == true){
+				sim.scene.remove(objects[ii*Y_WIDTH + jj]);
+			}
+
+		}
 	}
 
-	//if(tiles[y*Y_WIDTH + z] == 0){
+	//check for win
+	var count = 0;
+	for (var c = 0; c<revealed.length; c++){
+		if (revealed[c] == false){
+			count ++;
+		}
+	}
 
-		//revealTiles(y, z);
+	if (count==MINE_NO){
+		//WIN
+		box2render();
+	}
 
-	//}
 }
 
-function revealTiles(y, z){
+function revealTiles(){
 
-	//y+1 z
-	//y+1 z+1
-	//y+1 z-1
+	for(var i = 0; i<Y_WIDTH; i++){
+		for(var j = 0; j<Z_WIDTH; j++){
 
-	//y-1 z
-	//y-1 z+1
-	//y-1 z-1
+			if(revealed[i*Y_WIDTH + j] == true && tiles[i*Y_WIDTH +j] == 0){
 
-	//y z+1
-	//y z-1
+				revealed[(i-1)*Y_WIDTH + j] = true;
+				revealed[(i+1)*Y_WIDTH + j] = true;
+				
+				if((i*Y_WIDTH +j) %Y_WIDTH != 0){
+					revealed[i*Y_WIDTH + j-1] = true;
+					revealed[(i+1)*Y_WIDTH + j-1] = true;
+					revealed[(i-1)*Y_WIDTH + j-1] = true;
+				}
+				if ((i*Y_WIDTH + j) %Y_WIDTH != Y_WIDTH-1 ){
+					revealed[(i-1)*Y_WIDTH + j+1] = true;
+					revealed[i*Y_WIDTH + j+1] = true;
+					revealed[(i+1)*Y_WIDTH + j+1] = true;
+				}
+			}
 
-	sim.scene.remove(objects[(y+1)*Y_WIDTH + z]);
-	sim.scene.remove(objects[(y+1)*Y_WIDTH + (z+1)]);
-	sim.scene.remove(objects[(y+1)*Y_WIDTH + (z-1)]);
-	sim.scene.remove(objects[(y-1)*Y_WIDTH + z]);
-	sim.scene.remove(objects[(y-1)*Y_WIDTH + (z+1)]);
-	sim.scene.remove(objects[(y-1)*Y_WIDTH + (z-1)]);
-	sim.scene.remove(objects[(y)*Y_WIDTH + (z+1)]);
-	sim.scene.remove(objects[(y)*Y_WIDTH + (z-1)]);
-
-	//if (tiles[(y+1)*Y_WIDTH + z] == 0){revealTiles(y+1, z)}	
-	//if (tiles[(y-1)*Y_WIDTH + z] == 0){revealTiles(y-1, z)}
-	//if (tiles[(y-1)*Y_WIDTH + (z+1)] == 0){revealTiles(y-1, z+1)}
-	//if (tiles[(y-1)*Y_WIDTH + (z-1)] == 0){revealTiles(y-1, z-1)}
-	//if (tiles[(y)*Y_WIDTH + (z+1)] == 0){revealTiles(y, z+1)}
-	//if (tiles[(y+1)*Y_WIDTH + (z+1)] == 0){revealTiles(y+1, z+1)}
-	//if (tiles[(y+1)*Y_WIDTH + (z-1)] == 0){revealTiles(y+1, z-1)}
-	//if (tiles[(y)*Y_WIDTH + (z-1)] == 0){revealTiles(y, z-1)}
+	}//end i loop
 }
+
+}//end reveal tiles
 
 function setColors(box, y, z){
 
@@ -280,7 +313,7 @@ function drawGrid(){
 	for(var y = 0; y<Y_WIDTH; y++){
 	for(var z=0; z<Z_WIDTH; z++){
 
-	//revealed[y*Y_WIDTH + z] = false;
+	revealed[y*Y_WIDTH + z] = false;
 
 	cubeRender(y,z);
 	//create box
@@ -317,6 +350,9 @@ function wipeObjects(){
 	for (var i=0; i<objects.length; i++){
 		sim.scene.remove(objects[i]);
 	}
+	for (var i=0; i<obj_other.length; i++){
+		scene.remove(obj_other[i]);
+	}
 }
 
 
@@ -328,14 +364,15 @@ function initialiseVars(){
 
 	Y_WIDTH = 16;
 	Z_WIDTH = 16; 
-	MINE_NO = 40; //40
+	MINE_NO = 10; //40
 	GAME_OVER = false;
 	mines = [];
 	tiles = [];
 	objects = [];
 	objects2 = [];
 	flagging = false;
-	//revealed = [];
+	revealed = [];
+	obj_other = [];
 }
 
 var reset_box = new THREE.Mesh(
