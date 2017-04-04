@@ -11,6 +11,26 @@
     <!-- add a view camera (2d only) -->
     <a-text value="Hello, World!"></a-text>
 
+    <a-assets>
+    <img id="m1" src="assets/m1.png">
+    <img id="m2" src="assets/m2.png">
+    <img id="m3" src="assets/m3.png">
+    <img id="m4" src="assets/m4.png">
+    <img id="m5" src="assets/m5.png">
+    <img id="m6" src="assets/m6.png">
+    <img id="m7" src="assets/m7.png">
+    <img id="m8" src="assets/m8.png">
+    <img id="mblank" src="assets/m_blank.png">
+    <img id="mmine" src="assets/m_mine.png">
+    <img id="resetB" src="assets/resetButton">
+    <img id="flagMode" src="assets/flagMode">
+    <img id="normMode" src="assets/normalMode">
+
+  </a-assets>
+
+    <!--<a-entity geometry="primitive: box" material="shader: flat; src: #my-texture" position = '0 1 0'></a-entity>-->
+
+
     <a-entity position='0 0 2'>
         <a-camera></a-camera>
     </a-entity>
@@ -109,7 +129,7 @@ function cubeRender(y,z){
 	var box3 = new THREE.Mesh(
 
 		new THREE.BoxGeometry(0.2,0.2,0.2),
-		new THREE.MeshBasicMaterial({color:0xffffff})
+		new THREE.MeshBasicMaterial({color:0x4c4c4c})
 
 		);
 
@@ -122,7 +142,7 @@ function cubeRender(y,z){
 				box3.material.color.setHex(0xffcc00);
 				flagged = true;
 			} else {
-				box3.material.color.setHex(0xffffff);
+				box3.material.color.setHex(0x4c4c4c);
 				flagged = false;
 			}
 		}else{
@@ -205,6 +225,7 @@ function removeTiles(){
 	}
 
 	//check for win
+	//checks howmany unclicked tiles there are and compares with no of mines
 	var count = 0;
 	for (var c = 0; c<revealed.length; c++){
 		if (revealed[c] == false){
@@ -251,35 +272,46 @@ function setColors(box, y, z){
 	switch(tiles[y*Y_WIDTH + z]){
 			case 0:
 			box.setAttribute('color', '#ECACEC');
+			box.setAttribute('material', 'shader: flat; src: #mblank');
 			break;
 			case 1:
 			box.setAttribute('color', '#00ffcc'); //cyan
-			//box.setAttribute('material', m1.png);
+			box.setAttribute('material', 'shader: flat; src: #m1');
 			break;
 			case 2:
 			box.setAttribute('color', '#6600ff'); //purple
+			box.setAttribute('material', 'shader: flat; src: #m2');
 			break;
 			case 3:
 			box.setAttribute('color', '#00ff00'); //lime green
+			box.setAttribute('material', 'shader: flat; src: #m3');
 			break;
 			case 4:
 			box.setAttribute('color', '#009900'); //dark green
+			box.setAttribute('material', 'shader: flat; src: #m4');
 			break;
 			case 5:
 			box.setAttribute('color', '#fff000'); //yellow
+			box.setAttribute('material', 'shader: flat; src: #m5');
 			break;
 			case 6:
 			box.setAttribute('color', '#000dff'); //dark blue
+			box.setAttribute('material', 'shader: flat; src: #m6');
 			break;
 			case 7:
 			box.setAttribute('color', '#8c00ff'); //purple
+			box.setAttribute('material', 'shader: flat; src: #m7');
 			break;
 			case 8:
 			box.setAttribute('color', '#000000'); //black
+			box.setAttribute('material', 'shader: flat; src: #m8');
 			break;
 
 			case 90:
 			box.setAttribute('color', '#ff0000'); //red
+			box.setAttribute('material', 'shader: flat; src: #mmine');
+			break;
+
 
 		}
 }//end setColors
@@ -317,10 +349,9 @@ function drawGrid(){
 
 	cubeRender(y,z);
 	//create box
-	var box = document.createElement('a-box');
-	box.setAttribute('width', '0.2');
-	box.setAttribute('height', '0.2');
-	box.setAttribute('depth','0.2');
+	var box = document.createElement('a-entity');
+	box.setAttribute('geometry', 'primitive: box; width: 0.2; height: 0.2; depth: 0.2;');
+	//box.setAttribute('material', 'shader: flat; src: #mblank')
 
 	mineCheck(y,z);
 	setColors(box, y, z);
@@ -375,14 +406,71 @@ function initialiseVars(){
 	obj_other = [];
 }
 
-var reset_box = new THREE.Mesh(
 
-		new THREE.BoxGeometry(0.5,0.5,0.5),
-		new THREE.MeshBasicMaterial({color:0xffffff})
+	//var resetTex = new THREE.ImageUtils.loadTexture("assets/flagMode.png");
 
-		);
+	var flagGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5); 
+	//var resetMat = new THREE.MeshBasicMaterial({ 
+          //          map:resetTex, 
+        //            side:THREE.DoubleSide 
+      //       }); 
 
-	reset_box.position.set(2, 0, 2);
+	//var reset_box = new THREE.Mesh(flagGeo, resetTex);
+
+	//reset_box.position.set(2, 0, 2);
+
+	//reset_box.addEventListener('cursordown', function(){
+		
+	//	wipeObjects();
+	//	reset();
+		//box2render();
+
+	//});
+
+	
+
+	///=========
+	var flagTex = new THREE.ImageUtils.loadTexture("assets/flagMode.png");
+	var flagTex2 = new THREE.ImageUtils.loadTexture("assets/normalMode.png"); 
+	var resTex = new THREE.ImageUtils.loadTexture("assets/resetButton.png");
+	
+
+	var flagMat = new THREE.MeshBasicMaterial({ 
+                    map:flagTex, 
+                    side:THREE.DoubleSide 
+                 }); 
+	var flagMat2 = new THREE.MeshBasicMaterial({ 
+                    map:flagTex2, 
+                    side:THREE.DoubleSide 
+                 }); 
+	var resMat = new THREE.MeshBasicMaterial({ 
+                    map:resTex, 
+                    side:THREE.DoubleSide 
+                 }); 
+
+	var flag_box = new THREE.Mesh(flagGeo, flagMat);
+	var flag_box2 = new THREE.Mesh(flagGeo, flagMat2);
+	var reset_box = new THREE.Mesh(flagGeo, resMat);
+
+	flag_box.position.set(1, 0.25, 2);
+	flag_box2.position.set(1, 0.75, 2);
+	reset_box.position.set(1.5, 0.25, 2);
+
+	flag_box.addEventListener('cursordown', function(){
+		
+		if (flagging == false){
+			flagging = true;
+		}
+
+	});
+
+	flag_box2.addEventListener('cursordown', function(){
+		
+		if (flagging == true){
+			flagging = false;
+		}
+
+	});
 
 	reset_box.addEventListener('cursordown', function(){
 		
@@ -392,28 +480,12 @@ var reset_box = new THREE.Mesh(
 
 	});
 
-	sim.scene.add(reset_box);
 
-var flag_box = new THREE.Mesh(
-
-		new THREE.BoxGeometry(0.5,0.5,0.5),
-		new THREE.MeshBasicMaterial({color:0xffcc00d})
-
-		);
-
-	flag_box.position.set(1, 0, 2);
-
-	flag_box.addEventListener('cursordown', function(){
-		
-		if (flagging == false){
-			flagging = true;
-		} else {
-			flagging = false;
-		}
-
-	});
 
 	sim.scene.add(flag_box);
+	sim.scene.add(flag_box2);
+	sim.scene.add(reset_box);
+
 
 
 
