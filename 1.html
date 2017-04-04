@@ -174,11 +174,11 @@ function checkTile(y,z){
 
 	}
 
-	if(tiles[y*Y_WIDTH + z] == 0){
+	//if(tiles[y*Y_WIDTH + z] == 0){
 
-		revealTiles(y, z);
+		//revealTiles(y, z);
 
-	}
+	//}
 }
 
 function revealTiles(y, z){
@@ -328,7 +328,7 @@ function initialiseVars(){
 
 	Y_WIDTH = 16;
 	Z_WIDTH = 16; 
-	MINE_NO = 1; //40
+	MINE_NO = 40; //40
 	GAME_OVER = false;
 	mines = [];
 	tiles = [];
