@@ -13,25 +13,11 @@
     <!--<a-text value="Hello, World!"></a-text>-->
 
     <a-assets>
-    <img id="m1" src="assets/m1.png">
-    <img id="m2" src="assets/m2.png">
-    <img id="m3" src="assets/m3.png">
-    <img id="m4" src="assets/m4.png">
-    <img id="m5" src="assets/m5.png">
-    <img id="m6" src="assets/m6.png">
-    <img id="m7" src="assets/m7.png">
-    <img id="m8" src="assets/m8.png">
-    <img id="mblank" src="assets/m_blank.png">
-    <img id="mmine" src="assets/m_mine.png">
-    <img id="resetB" src="assets/resetButton.png">
-    <img id="flagMode" src="assets/flagMode.png">
-    <img id="normMode" src="assets/normalMode.png">
     <img id="win" src="assets/win.png">
     <img id="lose" src="assets/lose.png">
+  	</a-assets>
 
-  </a-assets>
-
-    <!--<a-entity geometry="primitive: box" material="shader: flat; src: #my-texture" position = '0 1 0'></a-entity>-->
+    <!--<a-entity geometry="primitive: box" material="shader: flat; src: #m1" position = '0 1 0'></a-entity>-->
     <a-entity bmfont-text="text: HELLO!; color: #333" position="0 1 0"></a-entity>
 
     <a-entity position='0 0 2'>
@@ -44,7 +30,9 @@
 
 <script>
 
-
+//altspace.getEnclosure().then(function(enclosure){
+       // enclosure.requestFullspace();
+   //});
 
 //--- synchronisation
 
@@ -62,6 +50,7 @@ var instanceRef;
 	}).then(function(connection) {
 	instanceRef = connection.instance;
 
+
 //---
 
 var scene;
@@ -74,6 +63,7 @@ var GAME_OVER;
 var rand;
 var mines;
 var tiles;
+var flags;
 var objects;
 var objects2;
 var flagging;
@@ -169,9 +159,13 @@ function cubeRender(y,z){
 			if (flagged == false){
 				//box3.material.color.setHex(0xffcc00);
 				//render a flag instead
+				
+				flagTile(flagged, y, z);
 				flagged = true;
 			} else {
 				//box3.material.color.setHex(0x4c4c4c);
+				//flagged = false;
+				flagTile(flagged, y, z);
 				flagged = false;
 			}
 		}else{
@@ -184,6 +178,31 @@ function cubeRender(y,z){
 	sim.scene.add(box3);
 
 }//end box3render
+
+function flagTile(flagged, y, z){
+
+	var fTex = new THREE.ImageUtils.loadTexture("assets/flag.png");
+	var fMat = new THREE.MeshBasicMaterial({ 
+                    map:fTex, 
+                    side:THREE.DoubleSide 
+                 }); 
+
+		var flagGeo = new THREE.BoxGeometry	(0.02, 0.2, 0.02);
+		var flag1 = new THREE.Mesh(flagGeo, fMat);
+
+		if (flagged == false){
+		flag1.position.set(y*0.2, 0.2, z*0.2);
+
+		sim.scene.add(flag1);
+		flags[y*Y_WIDTH + z] = flag1;
+		//flagg  = true;
+		} else {
+			sim.scene.remove(flags[y*Y_WIDTH + z]);
+			//flagged = false;
+		}
+
+
+}
 
 function mineCheck(y,z){
 		// minecheck2
@@ -428,6 +447,9 @@ function wipeObjects(){
 	for (var i=0; i<obj_other.length; i++){
 		scene.remove(obj_other[i]);
 	}
+	for (var i=0; i<flags.length; i++){
+		sim.scene.remove(flags[i]);
+	}
 }
 
 
@@ -442,6 +464,7 @@ function initialiseVars(){
 	GAME_OVER = false;
 	mines = [];
 	tiles = [];
+	flags = [];
 	objects = [];
 	objects2 = [];
 	flagging = false;
