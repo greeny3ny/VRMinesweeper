@@ -4,12 +4,13 @@
 <script src="https://cdn.rawgit.com/AltspaceVR/AltspaceSDK/v2.0.2/dist/altspace.min.js"></script>
 <script src="https://cdn.rawgit.com/mrdoob/three.js/r84/build/three.min.js"></script>
 <script src="../../dist/altspace.js"></script>
+<script src="https://rawgit.com/bryik/aframe-bmfont-text-component/master/dist/aframe-bmfont-text-component.min.js"></script>
 
 <!-- set up the scene -->
 <a-scene altspace='vertical-align: bottom;'>
  
     <!-- add a view camera (2d only) -->
-    <a-text value="Hello, World!"></a-text>
+    <!--<a-text value="Hello, World!"></a-text>-->
 
     <a-assets>
     <img id="m1" src="assets/m1.png">
@@ -22,14 +23,16 @@
     <img id="m8" src="assets/m8.png">
     <img id="mblank" src="assets/m_blank.png">
     <img id="mmine" src="assets/m_mine.png">
-    <img id="resetB" src="assets/resetButton">
-    <img id="flagMode" src="assets/flagMode">
-    <img id="normMode" src="assets/normalMode">
+    <img id="resetB" src="assets/resetButton.png">
+    <img id="flagMode" src="assets/flagMode.png">
+    <img id="normMode" src="assets/normalMode.png">
+    <img id="win" src="assets/win.png">
+    <img id="lose" src="assets/lose.png">
 
   </a-assets>
 
     <!--<a-entity geometry="primitive: box" material="shader: flat; src: #my-texture" position = '0 1 0'></a-entity>-->
-
+    <a-entity bmfont-text="text: HELLO!; color: #333" position="0 1 0"></a-entity>
 
     <a-entity position='0 0 2'>
         <a-camera></a-camera>
@@ -53,7 +56,7 @@ var inCodePen = utilities.codePen.inCodePen;
 var instanceRef;
 
 	utilities.sync.connect({
-		appId: 'AddingCubes',
+		appId: 'Minesweeper',
 		authorId: inCodePen ? utilities.codePen.getAuthorId() : 'AltspaceVR',
 		instanceId: inCodePen ? utilities.codePen.getPenId() : null
 	}).then(function(connection) {
@@ -81,13 +84,17 @@ reset();
 
 //uses for testing
 function box2render(){
-	var box2 = document.createElement('a-box');
+	var box2 = document.createElement('a-entity');
 
-	box2.setAttribute('width', '1');	
-	box2.setAttribute('height', '1');
-	box2.setAttribute('depth','1');
+	box2.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1;');
 	box2.setAttribute('color','#00FF00');
 	box2.setAttribute('position', '0 1 0');
+
+	if (GAME_OVER == false){
+		box2.setAttribute('material', 'shader: flat; src: #win');
+	} else {
+		box2.setAttribute('material', 'shader: flat; src: #lose');
+	}
 
 	scene.appendChild(box2);  //the box of testing
 	obj_other.push(box2);
@@ -158,8 +165,6 @@ function cubeRender(y,z){
 				flagged = false;
 			}
 		}else{
-		//sim.scene.remove(box3);
-		//revealed[y*Y_WIDTH + z] = true;
 		checkTile(y,z);
 		}
 	});
@@ -206,9 +211,9 @@ function checkTile(y,z){
 		GAME_OVER = true;
 		for (var i=0; i<objects.length; i++){
 			sim.scene.remove(objects[i]);
+			
 		}
-		//box2render();
-
+		lose();
 	}//end tiles=90
 
 	if(tiles[y*Y_WIDTH + z] == 0){
@@ -217,10 +222,8 @@ function checkTile(y,z){
 		for (var loop=0; loop<Y_WIDTH; loop++){
 		revealTiles();
 	}
-		//box2render();
 	}//tiles = 0 end
 
-	//box2render();
 	removeTiles();
 }
 
@@ -247,9 +250,18 @@ function removeTiles(){
 
 	if (count==MINE_NO){
 		//WIN
-		box2render();
+		win();
 	}
 
+}
+
+function win(){
+	box2render();
+	//do stuff with highscores or something here
+}
+
+function lose(){
+	box2render();
 }
 
 function revealTiles(){
@@ -330,13 +342,28 @@ function setColors(box, y, z){
 
 //sets mines
 function setMines(){
-
+	rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+	mines.push(rand);
 	//set mine positions
-	for(var i=0; i<MINE_NO; i++){
+	
 
-		rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+	for(var i=0; i<MINE_NO-1; i++){
+		
+		var dupe = false;
+		// /rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+		//make sure mine doesnt already exist
+		do{
+			dupe = false;
+			rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+			
+			for(var k = 0; k<mines.length; k++){
+				if (mines[k] == rand){dupe = true;}
+			}
+
+
+		}while(dupe == true);
+
 		mines.push(rand);
-
 	}
 
 	for(var y = 0; y<Y_WIDTH; y++){
@@ -480,10 +507,12 @@ function drawControls(){
 }
 
 function ready(firstInInstance) {
-				if (firstInInstance) {
-					reset();
-			}
+		if (firstInInstance) {
+			reset();
+		}
 }
+
+
 });
 
 
