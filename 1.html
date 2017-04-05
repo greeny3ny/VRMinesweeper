@@ -81,14 +81,15 @@ var revealed;
 var obj_other;
 
 reset();
+//box2render();
 
 //uses for testing
 function box2render(){
 	var box2 = document.createElement('a-entity');
 
-	box2.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1;');
+	box2.setAttribute('geometry', 'primitive: box; width: 2; height: 1; depth: 0.01;');
 	box2.setAttribute('color','#00FF00');
-	box2.setAttribute('position', '0 1 0');
+	box2.setAttribute('position', '-0.5 1 -2.5');
 
 	if (GAME_OVER == false){
 		box2.setAttribute('material', 'shader: flat; src: #win');
@@ -108,7 +109,7 @@ function edgeRender(){
 	edge1.setAttribute('height', '0.3');
 	edge1.setAttribute('depth', 0.2*Y_WIDTH);
 	edge1.setAttribute('color','#000000');
-	edge1.setAttribute('position', '-2.15 0 -0.5');
+	edge1.setAttribute('position', '-2.15 0.1 -0.5');
 
 	var edge2 = document.createElement('a-box');
 
@@ -116,7 +117,7 @@ function edgeRender(){
 	edge2.setAttribute('height', '0.3');
 	edge2.setAttribute('depth', 0.2*Y_WIDTH);
 	edge2.setAttribute('color','#000000');
-	edge2.setAttribute('position', '1.15 0 -0.5');
+	edge2.setAttribute('position', '1.15 0.1 -0.5');
 
 	var edge3 = document.createElement('a-box');
 
@@ -124,7 +125,7 @@ function edgeRender(){
 	edge3.setAttribute('height', '0.3');
 	edge3.setAttribute('depth', '0.1');
 	edge3.setAttribute('color','#000000');
-	edge3.setAttribute('position', '-0.5 0 -2.15');
+	edge3.setAttribute('position', '-0.5 0.1 -2.15');
 
 	var edge4 = document.createElement('a-box');
 
@@ -132,7 +133,7 @@ function edgeRender(){
 	edge4.setAttribute('height', '0.3');
 	edge4.setAttribute('depth', '0.1');
 	edge4.setAttribute('color','#000000');
-	edge4.setAttribute('position', '-0.5 0 1.15');
+	edge4.setAttribute('position', '-0.5 0.1 1.15');
 
 
 	scene.appendChild(edge1);
@@ -152,7 +153,7 @@ function cubeRender(y,z){
 
 		);
 
-	box3.position.set((y-10)*0.2, 0.01, (z-10)*0.2);
+	box3.position.set((y-10)*0.2, 0.11, (z-10)*0.2);
 
 	box3.addEventListener('cursordown', function(){
 		
@@ -396,7 +397,7 @@ function drawGrid(){
 	setColors(box, y, z);
 
 	//set box position
-	box.setAttribute('position', (y-10)*0.2 + ' 0 ' + (z-10)*0.2);
+	box.setAttribute('position', (y-10)*0.2 + ' 0.1 ' + (z-10)*0.2);
 		
 	//add box to scene
 	scene.appendChild(box);
