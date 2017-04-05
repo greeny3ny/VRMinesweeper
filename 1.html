@@ -41,8 +41,28 @@
 
 <script>
 
+
+
+//--- synchronisation
+
+var utilities = altspace.utilities;
+var behaviors = altspace.utilities.behaviors;
+
+var sim = new utilities.Simulation();
+var inCodePen = utilities.codePen.inCodePen;
+var instanceRef;
+
+	utilities.sync.connect({
+		appId: 'AddingCubes',
+		authorId: inCodePen ? utilities.codePen.getAuthorId() : 'AltspaceVR',
+		instanceId: inCodePen ? utilities.codePen.getPenId() : null
+	}).then(function(connection) {
+	instanceRef = connection.instance;
+
+//---
+
 var scene;
-var sim;
+//var sim = new altspace.utilities.Simulation();
 
 var Y_WIDTH;
 var Z_WIDTH; 
@@ -57,16 +77,8 @@ var flagging;
 var revealed;
 var obj_other;
 
-var img1 = new Image();
-img1.src = 'm1.png'
-var tex = new THREE.Texture(img1);
-img1.tex = tex;
-
-//box2render();
-
 reset();
-edgeRender();
-//box2render();
+
 //uses for testing
 function box2render(){
 	var box2 = document.createElement('a-box');
@@ -370,8 +382,10 @@ function drawGrid(){
 function reset(){
 
 	initialiseVars();
+	edgeRender();
 	setMines();
 	drawGrid();
+	drawControls();
 }
 
 function wipeObjects(){
@@ -391,7 +405,6 @@ function wipeObjects(){
 function initialiseVars(){
 
 	scene = document.querySelector('a-scene');
-	sim = new altspace.utilities.Simulation();
 
 	Y_WIDTH = 16;
 	Z_WIDTH = 16; 
@@ -406,30 +419,9 @@ function initialiseVars(){
 	obj_other = [];
 }
 
-
-	//var resetTex = new THREE.ImageUtils.loadTexture("assets/flagMode.png");
-
+function drawControls(){
 	var flagGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5); 
-	//var resetMat = new THREE.MeshBasicMaterial({ 
-          //          map:resetTex, 
-        //            side:THREE.DoubleSide 
-      //       }); 
 
-	//var reset_box = new THREE.Mesh(flagGeo, resetTex);
-
-	//reset_box.position.set(2, 0, 2);
-
-	//reset_box.addEventListener('cursordown', function(){
-		
-	//	wipeObjects();
-	//	reset();
-		//box2render();
-
-	//});
-
-	
-
-	///=========
 	var flagTex = new THREE.ImageUtils.loadTexture("assets/flagMode.png");
 	var flagTex2 = new THREE.ImageUtils.loadTexture("assets/normalMode.png"); 
 	var resTex = new THREE.ImageUtils.loadTexture("assets/resetButton.png");
@@ -485,7 +477,14 @@ function initialiseVars(){
 	sim.scene.add(flag_box);
 	sim.scene.add(flag_box2);
 	sim.scene.add(reset_box);
+}
 
+function ready(firstInInstance) {
+				if (firstInInstance) {
+					reset();
+			}
+}
+});
 
 
 
