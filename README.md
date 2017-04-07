@@ -14,4 +14,7 @@ Works only in altspaceVR.
 07/04/2017 Changes :
 - 50x50 board
 - Fixed so it runs in room of own
-- Added a text title thing
+- Added text
+  - title
+  - number of mines left
+  - number of correctly flagged mines
