@@ -15,8 +15,3 @@ Works only in altspaceVR.
 - 50x50 board
 - Fixed so it runs in room of own
 - Added a text title thing
-
-Issues -
-Very high up?
-Sync doesnt work
-No floor :(
