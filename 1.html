@@ -20,6 +20,7 @@
   	</a-assets>
 
 	<a-entity position='6 366 -1' rotation='0 0 0' n-text='text: Craigs Minesweeper! ;'></a-entity>
+	<a-entity position='20 363 -1' rotation='0 0 0' n-text='text: Note: This is not synchronised (yet) ;'></a-entity>
     <!--<a-entity geometry="primitive: box" material="shader: flat; src: #m1" position = '0 10 0'></a-entity>-->
 	<!--<a-box depth="100" height="0.1" width="100" position='0 360 0'><a-box>
 --> 
@@ -75,6 +76,14 @@ var flagging; //boolean to say if flagging mode is on or not
 var revealed; //array to store wether a tile has been revealed or not
 var obj_other; //stores other objects
 var yDepth; //testing
+var flagCounter; //how many flags are on the board
+var minesDisplay;
+
+var loseDisplay;
+var loseDisplay2;
+
+var corrFlaggedCounter;
+
 
 //sets up universal box geometry
 var boxGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);;
@@ -206,10 +215,25 @@ function flagTile(flagged, y, z){
 		flag1.position.set(y*0.2, 0.2+yDepth, z*0.2);
 		sim.scene.add(flag1);
 		flags[y*Y_WIDTH + z] = flag1;
+		flagCounter ++;
+
+			if(tiles[y*Y_WIDTH + z] == 90){
+			corrFlaggedCounter ++;
+			}
+
 		//flagg  = true;
 		} else {
 			sim.scene.remove(flags[y*Y_WIDTH + z]);
+			flagCounter --;
+
+			if(tiles[y*Y_WIDTH + z] == 90){
+			corrFlaggedCounter --;
+			}
+
 		}
+
+		//update text
+		drawTextstuff();
 }//end flagtile
 
 //used to set tiles up with their numbers
@@ -312,7 +336,18 @@ function win(){
 
 //function called when game is lost
 function lose(){
-		box2render();
+	box2render();
+
+	loseDisplay.setAttribute('color','#000000');
+	loseDisplay.setAttribute('position', '6 363 -1');
+	loseDisplay.setAttribute('n-text', 'text: Correctly Flagged Mines: ' +  corrFlaggedCounter +'/' + MINE_NO + ' ;');
+
+	loseDisplay2.setAttribute('color','#000000');
+	loseDisplay2.setAttribute('position', '6 361 -1');
+	loseDisplay2.setAttribute('n-text', 'text: Unflagged Mines: ' +  (MINE_NO - corrFlaggedCounter) +' ;');
+
+	scene.appendChild(loseDisplay);
+	scene.appendChild(loseDisplay2);
 }//end lose
 
 //reveals tiles around a 0 tile
@@ -465,6 +500,7 @@ function reset(){
 	setMines();
 	drawGrid();
 	drawControls();
+	drawTextstuff();
 }//end reset
 
 //removes all objects from screen
@@ -481,6 +517,9 @@ function wipeObjects(){
 	for (var i=0; i<flags.length; i++){
 		sim.scene.remove(flags[i]);
 	}
+	scene.remove(minesDisplay);
+	scene.remove(loseDisplay);
+	scene.remove(loseDisplay2);
 }//end wipeObjects
 
 //initialises variables
@@ -488,9 +527,9 @@ function initialiseVars(){
 
 	scene = document.querySelector('a-scene');
 
-	Y_WIDTH = 50;
-	Z_WIDTH = 50; 
-	MINE_NO = 400; //40
+	Y_WIDTH = 40;
+	Z_WIDTH = 40; 
+	MINE_NO = 300; //40
 	GAME_OVER = false;
 	mines = [];
 	tiles = [];
@@ -500,9 +539,25 @@ function initialiseVars(){
 	flagging = false;
 	revealed = [];
 	obj_other = [];
-	
-	yDepth = 360.3; //36.3
+	flagCounter = 0; //how many flags are on the board
+	minesDisplay = document.createElement('a-entity');
+	loseDisplay = document.createElement('a-entity');
+	loseDisplay2 = document.createElement('a-entity');
+	corrFlaggedCounter = 0;
+	yDepth = 360; //36.3
+
 }//end initvars
+
+//draws the info about the current game
+function drawTextstuff(){
+
+	minesDisplay.setAttribute('color','#000000');
+	minesDisplay.setAttribute('position', '6 365 -1');
+	minesDisplay.setAttribute('n-text', 'text: Current mines: ' +  (MINE_NO - flagCounter) +' ;');
+
+	scene.appendChild(minesDisplay);
+
+}
 
 //renders the control boxes
 function drawControls(){
