@@ -1,66 +1,119 @@
 <!DOCTYPE html>
 <html><body>
 <script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
-<script src="https://cdn.rawgit.com/AltspaceVR/AltspaceSDK/v2.0.2/dist/altspace.min.js"></script>
+<!--<script src="https://cdn.rawgit.com/AltspaceVR/AltspaceSDK/v2.0.2/dist/altspace.min.js"></script>-->
 <script src="https://cdn.rawgit.com/mrdoob/three.js/r84/build/three.min.js"></script>
 <script src="../../dist/altspace.js"></script>
+<script src="https://sdk.altvr.com/libs/altspace.js/2.4.0/altspace.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nunjucks/3.0.0/nunjucks.min.js"></script>
+<script src="https://rawgit.com/ngokevin/kframe/a1df8fc01514e509ba6d39c964254a1f1043b12b/dist/kframe.min.js"></script>
 
 <!-- set up the scene -->
 <a-scene altspace='vertical-align: bottom;'>
  
     <!-- add a view camera (2d only) -->
-    <a-text value="Hello, World!"></a-text>
+    <!--<a-text value="Hello, World!"></a-text>-->
 
-    <a-entity position='0 0 2'>
-        <a-camera></a-camera>
-    </a-entity>
- 
+    <a-assets>
+    <img id="win" src="assets/win.png">
+    <img id="lose" src="assets/lose.png">
+  	</a-assets>
+
+	<a-entity position='6 366 -1' rotation='0 0 0' n-text='text: Craigs Minesweeper! ;'></a-entity>
+	<a-entity position='20 363 -1' rotation='0 0 0' n-text='text: Note: This is not synchronised (yet) ;'></a-entity>
+    <!--<a-entity geometry="primitive: box" material="shader: flat; src: #m1" position = '0 10 0'></a-entity>-->
+	<!--<a-box depth="100" height="0.1" width="100" position='0 360 0'><a-box>
+--> 
 </a-scene>
  
 </body>
 
 <script>
 
+//this kinda works but messes stuff up 
+//altspace.getDocument().then(function(document){document.position.set(0, 360, 0)});
+//altspace.getUser().then(function(user){user.position.set(0, 0, 0});
+//altspace.getThreeJSTrackingSkeleton().then(function(sk){sk.position.set(0,0,0});
+altspace.getEnclosure().then(function(enclosure){
+        enclosure.requestFullspace().then(function(){
+				
+		
+
+
+//--- synchronisation
+
+var utilities = altspace.utilities;
+var behaviors = altspace.utilities.behaviors;
+
+//sync doesnt work yet :(
+var sim = new utilities.Simulation();
+var inCodePen = utilities.codePen.inCodePen;
+var instanceRef;
+
+	utilities.sync.connect({
+		appId: 'Minesweeper',
+		authorId: inCodePen ? utilities.codePen.getAuthorId() : 'AltspaceVR',
+		instanceId: inCodePen ? utilities.codePen.getPenId() : null
+	}).then(function(connection) {
+	instanceRef = connection.instance;
+
+
+//---
+
 var scene;
-var sim;
 
-var Y_WIDTH;
-var Z_WIDTH; 
-var MINE_NO;
-var GAME_OVER;
-var rand;
-var mines;
-var tiles;
-var objects;
-var objects2;
-var flagging;
-var revealed;
-var obj_other;
+var Y_WIDTH; //x width of board (i still need to rename this)
+var Z_WIDTH; //y width of board (still needing renamed)
+var MINE_NO; //number of mines
+var GAME_OVER; //boolean to say when user loses or not
+var rand; //used for mines
+var mines; //array to store mines in
+var tiles; //array to store value of each tile
+var flags; //array to store if a flag is placed at a tile or not
+var objects; //stores top layer of tiles
+var objects2; //stores bottom layer of tiles
+var flagging; //boolean to say if flagging mode is on or not
+var revealed; //array to store wether a tile has been revealed or not
+var obj_other; //stores other objects
+var yDepth; //testing
+var flagCounter; //how many flags are on the board
+var minesDisplay;
 
-var img1 = new Image();
-img1.src = 'm1.png'
-var tex = new THREE.Texture(img1);
-img1.tex = tex;
+var loseDisplay;
+var loseDisplay2;
 
-//box2render();
+var corrFlaggedCounter;
 
+
+//sets up universal box geometry
+var boxGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);;
+
+//used for texturing mines (needs renamed)
+var mineTexTest;
+var mineMatTest;
+
+//resets the board
 reset();
-edgeRender();
-//box2render();
-//uses for testing
-function box2render(){
-	var box2 = document.createElement('a-box');
 
-	box2.setAttribute('width', '1');	
-	box2.setAttribute('height', '1');
-	box2.setAttribute('depth','1');
+//renders the "You Win/Lose" box
+function box2render(){
+	var box2 = document.createElement('a-entity');
+
+	box2.setAttribute('geometry', 'primitive: box; width: 2; height: 1; depth: 0.01;');
 	box2.setAttribute('color','#00FF00');
-	box2.setAttribute('position', '0 1 0');
+	box2.setAttribute('position', '-0.5 ' + (1+yDepth) +' -2.5');
+
+	if (GAME_OVER == false){
+		box2.setAttribute('material', 'shader: flat; src: #win');
+	} else {
+		box2.setAttribute('material', 'shader: flat; src: #lose');
+	}
 
 	scene.appendChild(box2);  //the box of testing
 	obj_other.push(box2);
 }
 
+//renders the edges of the board
 function edgeRender(){
 
 	var edge1 = document.createElement('a-box');
@@ -69,7 +122,7 @@ function edgeRender(){
 	edge1.setAttribute('height', '0.3');
 	edge1.setAttribute('depth', 0.2*Y_WIDTH);
 	edge1.setAttribute('color','#000000');
-	edge1.setAttribute('position', '-2.15 0 -0.5');
+	edge1.setAttribute('position', '-0.15 ' + (0.1+yDepth) + ' ' + ((Y_WIDTH-1) *0.2) /2);
 
 	var edge2 = document.createElement('a-box');
 
@@ -77,7 +130,7 @@ function edgeRender(){
 	edge2.setAttribute('height', '0.3');
 	edge2.setAttribute('depth', 0.2*Y_WIDTH);
 	edge2.setAttribute('color','#000000');
-	edge2.setAttribute('position', '1.15 0 -0.5');
+	edge2.setAttribute('position', (0.15+((Y_WIDTH-1) *0.2)) +' ' + (0.1+yDepth) + ' '+ ((Y_WIDTH-1) *0.2) /2);
 
 	var edge3 = document.createElement('a-box');
 
@@ -85,7 +138,7 @@ function edgeRender(){
 	edge3.setAttribute('height', '0.3');
 	edge3.setAttribute('depth', '0.1');
 	edge3.setAttribute('color','#000000');
-	edge3.setAttribute('position', '-0.5 0 -2.15');
+	edge3.setAttribute('position', ((Z_WIDTH-1) *0.2) /2 + ' ' + (0.1+yDepth) +' -0.15');
 
 	var edge4 = document.createElement('a-box');
 
@@ -93,7 +146,7 @@ function edgeRender(){
 	edge4.setAttribute('height', '0.3');
 	edge4.setAttribute('depth', '0.1');
 	edge4.setAttribute('color','#000000');
-	edge4.setAttribute('position', '-0.5 0 1.15');
+	edge4.setAttribute('position', ((Z_WIDTH-1) *0.2) /2 + ' ' + (0.1+yDepth) + ' ' + (0.15+((Z_WIDTH-1) *0.2)));
 
 
 	scene.appendChild(edge1);
@@ -102,47 +155,96 @@ function edgeRender(){
 	scene.appendChild(edge4);
 }
 
-//renders screen
+//renders top layer of boxes
+//param y - xpos of tile (i goofed up naming)
+//param z - ypos of tile 
 function cubeRender(y,z){
 
+	//sets texture
+	var cTex = new THREE.ImageUtils.loadTexture("assets/unclickedtile.png");
+	var cMat = new THREE.MeshBasicMaterial({ 
+                    map:cTex, 
+                    side:THREE.DoubleSide 
+                 }); 
+
 	var flagged = false;
-	var box3 = new THREE.Mesh(
+	//creates new box
+	var box3 = new THREE.Mesh(boxGeo, cMat);
 
-		new THREE.BoxGeometry(0.2,0.2,0.2),
-		new THREE.MeshBasicMaterial({color:0xffffff})
+	box3.position.set((y)*0.2, 0.11+yDepth, (z)*0.2);
 
-		);
-
-	box3.position.set((y-10)*0.2, 0.01, (z-10)*0.2);
-
+	//if clicked draw/remove a flag
 	box3.addEventListener('cursordown', function(){
 		
 		if (flagging == true){
 			if (flagged == false){
-				box3.material.color.setHex(0xffcc00);
+				flagTile(flagged, y, z);
 				flagged = true;
 			} else {
-				box3.material.color.setHex(0xffffff);
+				flagTile(flagged, y, z);
 				flagged = false;
 			}
 		}else{
-		//sim.scene.remove(box3);
-		//revealed[y*Y_WIDTH + z] = true;
+		//check what the tile clicked was
 		checkTile(y,z);
 		}
 	});
 
-
 	objects.push(box3);
 	sim.scene.add(box3);
+}//end cube render
 
-}//end box3render
+//renders a flag on a tile
+//param flagged - is tile already flagged?
+//param y,z - x,y coords
+function flagTile(flagged, y, z){
 
+	//loads textures
+	var fTex = new THREE.ImageUtils.loadTexture("assets/flag.png");
+	var fMat = new THREE.MeshBasicMaterial({ 
+                    map:fTex, 
+                    side:THREE.DoubleSide 
+                 }); 
+
+	//sets geometry and creates flag
+	var flagGeo = new THREE.BoxGeometry	(0.02, 0.2, 0.02);
+	var flag1 = new THREE.Mesh(flagGeo, fMat);
+
+		//make a flag if no flag is at position, else remove flag
+		if (flagged == false){
+		flag1.position.set(y*0.2, 0.2+yDepth, z*0.2);
+		sim.scene.add(flag1);
+		flags[y*Y_WIDTH + z] = flag1;
+		flagCounter ++;
+
+			if(tiles[y*Y_WIDTH + z] == 90){
+			corrFlaggedCounter ++;
+			}
+
+		//flagg  = true;
+		} else {
+			sim.scene.remove(flags[y*Y_WIDTH + z]);
+			flagCounter --;
+
+			if(tiles[y*Y_WIDTH + z] == 90){
+			corrFlaggedCounter --;
+			}
+
+		}
+
+		//update text
+		drawTextstuff();
+}//end flagtile
+
+//used to set tiles up with their numbers
+//param y,z - xy coords
 function mineCheck(y,z){
-		// minecheck2
-		// loop through all 8 tiles around
+		
 		//checks if current tile is NOT a mine
 		if (tiles[y*Y_WIDTH + z] != 90) {
+
+			// loop through all 8 tiles around
+			// adds to counter if mine is nearby
 
 			var	counter = 0;
 
@@ -165,35 +267,42 @@ function mineCheck(y,z){
 }//endminecheck function
 
 //checks tile clicked on
+//param yz - xy coords
 function checkTile(y,z){
 
+	//tile clicked on is reveled
 	revealed[y*Y_WIDTH + z] = true;
 
+	//checks if tile is mine
 	if(tiles[y*Y_WIDTH + z] == 90){
 
+		//this code can be moved into lose function?
 		GAME_OVER = true;
 		for (var i=0; i<objects.length; i++){
-			sim.scene.remove(objects[i]);
+			sim.scene.remove(objects[i]);	
 		}
-		//box2render();
-
+		lose();
 	}//end tiles=90
 
+	//checks if tile is blank
 	if(tiles[y*Y_WIDTH + z] == 0){
 		
-		//makes sure all variations of the thing can be thinged
+		//makes sure all tiles can be revealed
+		// (it works and its hard to explain)
 		for (var loop=0; loop<Y_WIDTH; loop++){
+		//reveals tiles around a 0 tile
 		revealTiles();
 	}
-		//box2render();
 	}//tiles = 0 end
 
-	//box2render();
+	//removes tiles
 	removeTiles();
-}
+}//end check tile
 
+//removes tiles
 function removeTiles(){
 
+	//loops through whole grid and removes object if revealed == true
 	for (var ii = 0; ii<Y_WIDTH; ii++){
 		for (var jj = 0; jj<Y_WIDTH; jj++){
 
@@ -205,6 +314,7 @@ function removeTiles(){
 	}
 
 	//check for win
+	//checks howmany unclicked tiles there are and compares with no of mines
 	var count = 0;
 	for (var c = 0; c<revealed.length; c++){
 		if (revealed[c] == false){
@@ -214,21 +324,46 @@ function removeTiles(){
 
 	if (count==MINE_NO){
 		//WIN
-		box2render();
+		win();
 	}
+}//end remove tiles
 
-}
+//function called when game is won
+function win(){
+	box2render();
+	//do stuff with highscores or something here
+}//end win
 
+//function called when game is lost
+function lose(){
+	box2render();
+
+	loseDisplay.setAttribute('color','#000000');
+	loseDisplay.setAttribute('position', '6 363 -1');
+	loseDisplay.setAttribute('n-text', 'text: Correctly Flagged Mines: ' +  corrFlaggedCounter +'/' + MINE_NO + ' ;');
+
+	loseDisplay2.setAttribute('color','#000000');
+	loseDisplay2.setAttribute('position', '6 361 -1');
+	loseDisplay2.setAttribute('n-text', 'text: Unflagged Mines: ' +  (MINE_NO - corrFlaggedCounter) +' ;');
+
+	scene.appendChild(loseDisplay);
+	scene.appendChild(loseDisplay2);
+}//end lose
+
+//reveals tiles around a 0 tile
 function revealTiles(){
 
+	//loops through whole grid
 	for(var i = 0; i<Y_WIDTH; i++){
 		for(var j = 0; j<Z_WIDTH; j++){
 
+			//if tile is revealed and is a 0 tile, reveal tiles around it
 			if(revealed[i*Y_WIDTH + j] == true && tiles[i*Y_WIDTH +j] == 0){
 
 				revealed[(i-1)*Y_WIDTH + j] = true;
 				revealed[(i+1)*Y_WIDTH + j] = true;
 				
+				//makes sure some edge tiles are not removed
 				if((i*Y_WIDTH +j) %Y_WIDTH != 0){
 					revealed[i*Y_WIDTH + j-1] = true;
 					revealed[(i+1)*Y_WIDTH + j-1] = true;
@@ -242,57 +377,76 @@ function revealTiles(){
 			}
 
 	}//end i loop
-}
-
+	}
 }//end reveal tiles
 
+//sets textures of tiles
 function setColors(box, y, z){
 
 	switch(tiles[y*Y_WIDTH + z]){
 			case 0:
-			box.setAttribute('color', '#ECACEC');
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m_blank.png");
 			break;
 			case 1:
-			box.setAttribute('color', '#00ffcc'); //cyan
-			//box.setAttribute('material', m1.png);
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m1.png");
 			break;
 			case 2:
-			box.setAttribute('color', '#6600ff'); //purple
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m2.png");
 			break;
 			case 3:
-			box.setAttribute('color', '#00ff00'); //lime green
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m3.png");
 			break;
 			case 4:
-			box.setAttribute('color', '#009900'); //dark green
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m4.png");
 			break;
 			case 5:
-			box.setAttribute('color', '#fff000'); //yellow
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m5.png");
 			break;
 			case 6:
-			box.setAttribute('color', '#000dff'); //dark blue
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m6.png");
 			break;
 			case 7:
-			box.setAttribute('color', '#8c00ff'); //purple
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m7.png");
 			break;
 			case 8:
-			box.setAttribute('color', '#000000'); //black
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m8.png");
 			break;
 
 			case 90:
-			box.setAttribute('color', '#ff0000'); //red
+			mineMatTest = new THREE.ImageUtils.loadTexture("assets/m_mine.png");
+			break;
 
 		}
+
+		//named them the wrong way round :/
+		mineTexTest = new THREE.MeshBasicMaterial({ map: mineMatTest, side:THREE.DoubleSide }); 
 }//end setColors
 
 //sets mines
 function setMines(){
+	//creates initial mine
+	rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+	mines.push(rand);
 
-	//set mine positions
-	for(var i=0; i<MINE_NO; i++){
+	//loops through all mines
+	for(var i=0; i<MINE_NO-1; i++){
+		
+		var dupe = false; //is mine a duplicate or not
+		
+		//loops until mine is not a duplicate
+		do{
+			dupe = false;
+			rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+			
+			//compares current mines to other mines
+			for(var k = 0; k<mines.length; k++){
+				if (mines[k] == rand){dupe = true;}
+			}
 
-		rand = Math.floor(Math.random()*(Y_WIDTH*Z_WIDTH));
+
+		}while(dupe == true);
+
 		mines.push(rand);
-
 	}
 
 	for(var y = 0; y<Y_WIDTH; y++){
@@ -300,52 +454,59 @@ function setMines(){
 		//loop through mines array
 		for(var mn=0; mn < mines.length; mn++){
 			//temporary variable to hold mine that is being checked
+			//i think this can be done simpler ?
 			var t1 = mines[mn];
 			//set mines
 			if(y*Y_WIDTH + z == t1){	tiles[t1] = 90 }
 		}//end for mn
 	}//end for z
 	}//end for y	
-}
+}//end set mines
 
-//drawsgrid
+//draws board
 function drawGrid(){
 	for(var y = 0; y<Y_WIDTH; y++){
 	for(var z=0; z<Z_WIDTH; z++){
 
+	//no tile has been revelaed yet
 	revealed[y*Y_WIDTH + z] = false;
 
+	//draws the top layer
 	cubeRender(y,z);
 	//create box
-	var box = document.createElement('a-box');
-	box.setAttribute('width', '0.2');
-	box.setAttribute('height', '0.2');
-	box.setAttribute('depth','0.2');
+	var box;
 
+	//checks if tile is mine
 	mineCheck(y,z);
+	//sets textures
 	setColors(box, y, z);
+	//create box
+	box = new THREE.Mesh(boxGeo, mineTexTest);
 
 	//set box position
-	box.setAttribute('position', (y-10)*0.2 + ' 0 ' + (z-10)*0.2);
-		
+	box.position.set((y)*0.2 , 0.1+yDepth, (z)*0.2);
+
 	//add box to scene
-	scene.appendChild(box);
+	sim.scene.add(box);
 	objects2.push(box);
 	}//end for z
 	}//end for x
-}
+}//end drawGrid
 
 //resets app
 function reset(){
-
 	initialiseVars();
+	edgeRender();
 	setMines();
 	drawGrid();
-}
+	drawControls();
+	drawTextstuff();
+}//end reset
 
+//removes all objects from screen
 function wipeObjects(){
 	for (var i=0; i<objects2.length; i++){
-		scene.remove(objects2[i]);
+		sim.scene.remove(objects2[i]);
 	}
 	for (var i=0; i<objects.length; i++){
 		sim.scene.remove(objects[i]);
@@ -353,67 +514,125 @@ function wipeObjects(){
 	for (var i=0; i<obj_other.length; i++){
 		scene.remove(obj_other[i]);
 	}
-}
+	for (var i=0; i<flags.length; i++){
+		sim.scene.remove(flags[i]);
+	}
+	scene.remove(minesDisplay);
+	scene.remove(loseDisplay);
+	scene.remove(loseDisplay2);
+}//end wipeObjects
 
-
-
+//initialises variables
 function initialiseVars(){
 
 	scene = document.querySelector('a-scene');
-	sim = new altspace.utilities.Simulation();
 
-	Y_WIDTH = 16;
-	Z_WIDTH = 16; 
-	MINE_NO = 10; //40
+	Y_WIDTH = 40;
+	Z_WIDTH = 40; 
+	MINE_NO = 300; //40
 	GAME_OVER = false;
 	mines = [];
 	tiles = [];
+	flags = [];
 	objects = [];
 	objects2 = [];
 	flagging = false;
 	revealed = [];
 	obj_other = [];
+	flagCounter = 0; //how many flags are on the board
+	minesDisplay = document.createElement('a-entity');
+	loseDisplay = document.createElement('a-entity');
+	loseDisplay2 = document.createElement('a-entity');
+	corrFlaggedCounter = 0;
+	yDepth = 360; //36.3
+
+}//end initvars
+
+//draws the info about the current game
+function drawTextstuff(){
+
+	minesDisplay.setAttribute('color','#000000');
+	minesDisplay.setAttribute('position', '6 365 -1');
+	minesDisplay.setAttribute('n-text', 'text: Current mines: ' +  (MINE_NO - flagCounter) +' ;');
+
+	scene.appendChild(minesDisplay);
+
 }
 
-var reset_box = new THREE.Mesh(
+//renders the control boxes
+function drawControls(){
+	var flagGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5); 
 
-		new THREE.BoxGeometry(0.5,0.5,0.5),
-		new THREE.MeshBasicMaterial({color:0xffffff})
-
-		);
-
-	reset_box.position.set(2, 0, 2);
-
-	reset_box.addEventListener('cursordown', function(){
-		
-		wipeObjects();
-		reset();
-		//box2render();
-
-	});
-
-	sim.scene.add(reset_box);
-
-var flag_box = new THREE.Mesh(
-
-		new THREE.BoxGeometry(0.5,0.5,0.5),
-		new THREE.MeshBasicMaterial({color:0xffcc00d})
-
-		);
-
-	flag_box.position.set(1, 0, 2);
-
+	//sets textures
+	var flagTex = new THREE.ImageUtils.loadTexture("assets/flagMode.png");
+	var flagTex2 = new THREE.ImageUtils.loadTexture("assets/normalMode.png"); 
+	var resTex = new THREE.ImageUtils.loadTexture("assets/resetButton.png");
+	
+	//sets materials
+	var flagMat = new THREE.MeshBasicMaterial({ 
+                    map:flagTex, 
+                    side:THREE.DoubleSide 
+                 }); 
+	var flagMat2 = new THREE.MeshBasicMaterial({ 
+                    map:flagTex2, 
+                    side:THREE.DoubleSide 
+                 }); 
+	var resMat = new THREE.MeshBasicMaterial({ 
+                    map:resTex, 
+                    side:THREE.DoubleSide 
+                 }); 
+	//creates boxes
+	var flag_box = new THREE.Mesh(flagGeo, flagMat);
+	var flag_box2 = new THREE.Mesh(flagGeo, flagMat2);
+	var reset_box = new THREE.Mesh(flagGeo, resMat);
+	//sets position
+	flag_box.position.set(-2, 0.25+yDepth, -3);
+	flag_box2.position.set(-2, 0.75+yDepth, -3);
+	reset_box.position.set(-2.5, 0.25+yDepth, -3);
+	//event listeners
 	flag_box.addEventListener('cursordown', function(){
 		
 		if (flagging == false){
 			flagging = true;
-		} else {
+		}
+
+	});
+
+	flag_box2.addEventListener('cursordown', function(){
+		
+		if (flagging == true){
 			flagging = false;
 		}
 
 	});
 
+	reset_box.addEventListener('cursordown', function(){
+		
+		wipeObjects();
+		reset();
+
+	});
+
+
+
 	sim.scene.add(flag_box);
+	sim.scene.add(flag_box2);
+	sim.scene.add(reset_box);
+}
+
+//this doesnt do anything yet
+function ready(firstInInstance) {
+		if (firstInInstance) {
+			reset();
+		}
+}
+
+
+});//sync
+
+//fullspace
+		});
+   });
 
 
 
