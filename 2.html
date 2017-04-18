@@ -64,7 +64,7 @@ var instanceRef;
 		
 		},
 		destroyers: {
-			'Cube'
+			'Cube' : removeTiles
 		},
 			ready:ready
 
@@ -318,7 +318,7 @@ function checkTile(y,z){
 
 	//removes tiles
 	//removeTiles();
-	destroy('Cube');
+	sceneSync.destroy('Cube');
 }//end check tile
 
 //removes tiles
