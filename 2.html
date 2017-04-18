@@ -63,6 +63,9 @@ var instanceRef;
 			'Cube' : cubeRender
 		
 		},
+		destroyers: {
+			'Cube'
+		},
 			ready:ready
 
 	});
@@ -314,7 +317,8 @@ function checkTile(y,z){
 	}//tiles = 0 end
 
 	//removes tiles
-	removeTiles();
+	//removeTiles();
+	destroy('Cube');
 }//end check tile
 
 //removes tiles
@@ -344,6 +348,8 @@ function removeTiles(){
 		//WIN
 		win();
 	}
+	
+	return true;
 }//end remove tiles
 
 //function called when game is won
