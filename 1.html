@@ -3,7 +3,7 @@
 <script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
 <!--<script src="https://cdn.rawgit.com/AltspaceVR/AltspaceSDK/v2.0.2/dist/altspace.min.js"></script>-->
 <script src="https://cdn.rawgit.com/mrdoob/three.js/r84/build/three.min.js"></script>
-<script src="../../dist/altspace.js"></script>
+<script src="../../dist/altspace.js"></script>a
 <script src="https://sdk.altvr.com/libs/altspace.js/2.4.0/altspace.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nunjucks/3.0.0/nunjucks.min.js"></script>
 <script src="https://rawgit.com/ngokevin/kframe/a1df8fc01514e509ba6d39c964254a1f1043b12b/dist/kframe.min.js"></script>
@@ -17,10 +17,18 @@
     <a-assets>
     <img id="win" src="assets/win.png">
     <img id="lose" src="assets/lose.png">
+	
+	<a-asset-item id="object" src="https://greeny3ny.github.io/models/spiral.obj"></a-asset-item>
+	<a-asset-item id="material" src="https://greeny3ny.github.io/models/spiral.mtl"></a-asset-item>
+	<img id='stars' src='assets/stars.png'/>
   	</a-assets>
 
-	<a-entity position='6 366 -1' rotation='0 0 0' n-text='text: Craigs Minesweeper! ;'></a-entity>
-	<a-entity position='20 363 -1' rotation='0 0 0' n-text='text: Note: This is not synchronised (yet) ;'></a-entity>
+	<a-entity position='4 368 -6' rotation='0 0 0' n-text='text: Craigs Minesweeper! ;'></a-entity>
+	<a-entity position='20 363 -6' rotation='0 0 0' n-text='text: Note: This is not synchronised (yet) ;'></a-entity>
+	<a-entity position="37 360 -28" rotation="278 0 180" scale="1.5 1.5 1.5" obj-model="obj: #object; mtl: #material"></a-entity>
+	<a-box color="tomato" depth="1" height="1" width="1" position = "0 1 0"></a-box>
+	<a-sky src='#stars' radius='2500'></a-sky>
+
     <!--<a-entity geometry="primitive: box" material="shader: flat; src: #m1" position = '0 10 0'></a-entity>-->
 	<!--<a-box depth="100" height="0.1" width="100" position='0 360 0'><a-box>
 --> 
@@ -339,11 +347,11 @@ function lose(){
 	box2render();
 
 	loseDisplay.setAttribute('color','#000000');
-	loseDisplay.setAttribute('position', '6 363 -1');
+	loseDisplay.setAttribute('position', '4 365 -6');
 	loseDisplay.setAttribute('n-text', 'text: Correctly Flagged Mines: ' +  corrFlaggedCounter +'/' + MINE_NO + ' ;');
 
 	loseDisplay2.setAttribute('color','#000000');
-	loseDisplay2.setAttribute('position', '6 361 -1');
+	loseDisplay2.setAttribute('position', '4 363 -5');
 	loseDisplay2.setAttribute('n-text', 'text: Unflagged Mines: ' +  (MINE_NO - corrFlaggedCounter) +' ;');
 
 	scene.appendChild(loseDisplay);
@@ -552,7 +560,7 @@ function initialiseVars(){
 function drawTextstuff(){
 
 	minesDisplay.setAttribute('color','#000000');
-	minesDisplay.setAttribute('position', '6 365 -1');
+	minesDisplay.setAttribute('position', '4 367 -6');
 	minesDisplay.setAttribute('n-text', 'text: Current mines: ' +  (MINE_NO - flagCounter) +' ;');
 
 	scene.appendChild(minesDisplay);
@@ -586,9 +594,9 @@ function drawControls(){
 	var flag_box2 = new THREE.Mesh(flagGeo, flagMat2);
 	var reset_box = new THREE.Mesh(flagGeo, resMat);
 	//sets position
-	flag_box.position.set(-2, 0.25+yDepth, -3);
-	flag_box2.position.set(-2, 0.75+yDepth, -3);
-	reset_box.position.set(-2.5, 0.25+yDepth, -3);
+	flag_box.position.set(-2, 0.25+yDepth, 1);
+	flag_box2.position.set(-2, 0.75+yDepth, 1);
+	reset_box.position.set(-2.5, 0.25+yDepth, 1);
 	//event listeners
 	flag_box.addEventListener('cursordown', function(){
 		
