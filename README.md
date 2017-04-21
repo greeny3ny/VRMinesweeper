@@ -18,3 +18,8 @@ Works only in altspaceVR.
   - title
   - number of mines left
   - number of correctly flagged mines
+
+21/04/2017 Changes :
+- Added a model
+- Shifted stuff to cope with model
+- Sky is now grey?
