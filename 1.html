@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html><body>
 <script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
-<script src="https://cdn.rawgit.com/AltspaceVR/AltspaceSDK/v2.0.2/dist/altspace.min.js"></script>
+<!--<script src="https://cdn.rawgit.com/AltspaceVR/AltspaceSDK/v2.0.2/dist/altspace.min.js"></script>-->
 <script src="https://cdn.rawgit.com/mrdoob/three.js/r84/build/three.min.js"></script>
-<script src="../../dist/altspace.js"></script>
+<script src="../../dist/altspace.js"></script>a
 <script src="https://sdk.altvr.com/libs/altspace.js/2.4.0/altspace.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nunjucks/3.0.0/nunjucks.min.js"></script>
 <script src="https://rawgit.com/ngokevin/kframe/a1df8fc01514e509ba6d39c964254a1f1043b12b/dist/kframe.min.js"></script>
@@ -25,9 +25,9 @@
 
 	<a-entity position='4 8 -6' rotation='0 0 0' n-text='text: Craigs Minesweeper! ;'></a-entity>
 	<a-entity position='20 3 -6' rotation='0 0 0' n-text='text: Note: This is not synchronised (yet) ;'></a-entity>
-	<a-entity n-mesh-collider="type:environment" position="37 0 -28" rotation="278 0 180" scale="1.5 1.5 1.5" obj-model="obj: #object; mtl: #material"></a-entity>
-	<a-sky src='#stars' radius='2500'></a-sky> <!-- just grey-->
-	
+	<a-entity position="37 0 -28" rotation="278 0 180" scale="1.5 1.5 1.5" obj-model="obj: #object; mtl: #material"></a-entity>
+	<a-sky src='#stars' radius='2500'></a-sky>
+
     <!--<a-entity geometry="primitive: box" material="shader: flat; src: #m1" position = '0 10 0'></a-entity>-->
 	<!--<a-box depth="100" height="0.1" width="100" position='0 360 0'><a-box>
 --> 
@@ -38,14 +38,14 @@
 <script>
 
 //this kinda works but messes stuff up 
-//altspace.getDocument().then(function(document){document.position.set(0, 368, 0)});
+//altspace.getDocument().then(function(document){document.position.set(0, 360, 0)});
 //altspace.getUser().then(function(user){user.position.set(0, 0, 0});
 //altspace.getThreeJSTrackingSkeleton().then(function(sk){sk.position.set(0,0,0});
 altspace.getEnclosure().then(function(enclosure){
         enclosure.requestFullspace().then(function(){
 				
-			//altspace.getDocument().then(function(document){document.position.set(0, 360, 0)});
-			
+		
+
 
 //--- synchronisation
 
@@ -346,11 +346,11 @@ function lose(){
 	box2render();
 
 	loseDisplay.setAttribute('color','#000000');
-	loseDisplay.setAttribute('position', '4 ' +(yDepth+5)+ ' -6');
+	loseDisplay.setAttribute('position', '4 ' +(yDepth+5) +' -6');
 	loseDisplay.setAttribute('n-text', 'text: Correctly Flagged Mines: ' +  corrFlaggedCounter +'/' + MINE_NO + ' ;');
 
 	loseDisplay2.setAttribute('color','#000000');
-	loseDisplay2.setAttribute('position', '4 ' +(yDepth+3) + ' -5');
+	loseDisplay2.setAttribute('position', '4 '+(yDepth+3)+ ' -5');
 	loseDisplay2.setAttribute('n-text', 'text: Unflagged Mines: ' +  (MINE_NO - corrFlaggedCounter) +' ;');
 
 	scene.appendChild(loseDisplay);
@@ -559,7 +559,7 @@ function initialiseVars(){
 function drawTextstuff(){
 
 	minesDisplay.setAttribute('color','#000000');
-	minesDisplay.setAttribute('position', '4 ' + (yDepth+7) + ' -6');
+	minesDisplay.setAttribute('position', '4 ' +(yDepth+7) +' -6');
 	minesDisplay.setAttribute('n-text', 'text: Current mines: ' +  (MINE_NO - flagCounter) +' ;');
 
 	scene.appendChild(minesDisplay);
