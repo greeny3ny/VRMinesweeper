@@ -22,6 +22,8 @@
 
 	<a-entity position='4 8 -6' rotation='0 0 0' n-text='text: Craigs Minesweeper! ;'></a-entity>
 	<a-entity position='20 3 -6' rotation='0 0 0' n-text='text: Note: This is not synchronised (yet) ;'></a-entity>
+	<a-entity id="mode" position='4 3 -6' rotation='0 0 0' n-text='text: Normal Mode ;'></a-entity>
+	
 	
 </a-scene>
  
@@ -586,8 +588,10 @@ function drawControls(){
 		
 		if (!flagging){
 			flagging = true;
+			document.querySelector('#mode').setAttribute('n-text', 'text: Flagging Mode);
 		} else {
 			flagging = false;
+			document.querySelector('#mode').setAttribute('n-text', 'text: Normal Mode);					     
 		}
 
 	});
