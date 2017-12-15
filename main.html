@@ -15,26 +15,14 @@
     <!--<a-text value="Hello, World!"></a-text>-->
 
     <a-assets>
-    <img id="win" src="assets/win.png">
-    <img id="lose" src="assets/lose.png">
+    	<img id="win" src="assets/win.png">
+    	<img id="lose" src="assets/lose.png">
 	
-	<a-asset-item id="object" src="https://greeny3ny.github.io/models/objects/spiral2.obj"></a-asset-item>
-	<a-asset-item id="material" src="https://greeny3ny.github.io/models/materials/spiral2.mtl"></a-asset-item>
-	
-	<a-asset-item id="mountOBJ" src="https://greeny3ny.github.io/models/objects/mountains123.obj"></a-asset-item>
-	<a-asset-item id="mountMAT" src="https://greeny3ny.github.io/models/materials/mountains123.mtl"></a-asset-item>
-	<img id='stars' src='assets/stars.png'/>
-  	</a-assets>
+  </a-assets>
 
 	<a-entity position='4 8 -6' rotation='0 0 0' n-text='text: Craigs Minesweeper! ;'></a-entity>
 	<a-entity position='20 3 -6' rotation='0 0 0' n-text='text: Note: This is not synchronised (yet) ;'></a-entity>
-	<!--<a-entity n-mesh-collider="type:environment" position="-2.5 -0.5 -7.5" rotation="180 0 180" scale="1.5 1.5 1.5" obj-model="obj: #object; mtl: #material"></a-entity>
-<a-entity n-mesh-collider="type:object" scale="3 3 3" color="#3d3124" position="-18 0 34" rotation="-90 0 0" scale="1.5 1.5 1.5" obj-model="obj: #mountOBJ; mtl: #mountMAT"></a-entity>
-	<a-sky src='#stars' radius='2500'></a-sky>
-
-    <!--<a-entity geometry="primitive: box" material="shader: flat; src: #m1" position = '0 10 0'></a-entity>-->
-	<!--<a-box depth="100" height="0.1" width="100" position='0 360 0'><a-box>
---> 
+	
 </a-scene>
  
 </body>
@@ -575,17 +563,12 @@ function drawControls(){
 	var flagGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5); 
 
 	//sets textures
-	var flagTex = new THREE.ImageUtils.loadTexture("assets/flagMode.png");
-	var flagTex2 = new THREE.ImageUtils.loadTexture("assets/normalMode.png"); 
+	var flagTex = new THREE.ImageUtils.loadTexture("assets/flagMode.png"); /
 	var resTex = new THREE.ImageUtils.loadTexture("assets/resetButton.png");
 	
 	//sets materials
 	var flagMat = new THREE.MeshBasicMaterial({ 
                     map:flagTex, 
-                    side:THREE.DoubleSide 
-                 }); 
-	var flagMat2 = new THREE.MeshBasicMaterial({ 
-                    map:flagTex2, 
                     side:THREE.DoubleSide 
                  }); 
 	var resMat = new THREE.MeshBasicMaterial({ 
@@ -594,24 +577,16 @@ function drawControls(){
                  }); 
 	//creates boxes
 	var flag_box = new THREE.Mesh(flagGeo, flagMat);
-	var flag_box2 = new THREE.Mesh(flagGeo, flagMat2);
 	var reset_box = new THREE.Mesh(flagGeo, resMat);
 	//sets position
 	flag_box.position.set(-2, 0.25+yDepth, 1);
-	flag_box2.position.set(-2, 0.75+yDepth, 1);
 	reset_box.position.set(-2.5, 0.25+yDepth, 1);
 	//event listeners
 	flag_box.addEventListener('cursordown', function(){
 		
-		if (flagging == false){
+		if (!flagging){
 			flagging = true;
-		}
-
-	});
-
-	flag_box2.addEventListener('cursordown', function(){
-		
-		if (flagging == true){
+		} else {
 			flagging = false;
 		}
 
@@ -627,7 +602,6 @@ function drawControls(){
 
 
 	sim.scene.add(flag_box);
-	sim.scene.add(flag_box2);
 	sim.scene.add(reset_box);
 }
 
